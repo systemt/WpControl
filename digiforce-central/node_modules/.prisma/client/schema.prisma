@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("admin")
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("admin_users")
+}
+
+model Site {
+  id            String    @id @default(cuid())
+  uuid          String    @unique
+  name          String
+  url           String
+  environment   String    @default("production")
+  status        String    @default("unknown")
+  centralNotes  String?
+  wpVersion     String?
+  phpVersion    String?
+  pluginVersion String?
+  lastSeenAt    DateTime?
+  lastSyncAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  connection      SiteConnection?
+  logs            SiteLog[]
+  commands        SiteCommand[]
+  pluginSnapshots SitePluginSnapshot[]
+  themeSnapshots  SiteThemeSnapshot[]
+  coreSnapshot    SiteCoreSnapshot?
+
+  @@index([status])
+  @@index([environment])
+  @@map("sites")
+}
+
+model SiteConnection {
+  id                    String   @id @default(cuid())
+  siteId                String   @unique
+  site                  Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  secretKeyEncrypted    String
+  allowedIps            String[] @default([])
+  requireSignedRequests Boolean  @default(true)
+  connectionEnabled     Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("site_connections")
+}
+
+model SiteLog {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  level     String
+  category  String
+  message   String
+  metaJson  Json?
+  createdAt DateTime @default(now())
+
+  @@index([siteId, createdAt])
+  @@index([level])
+  @@index([category])
+  @@map("site_logs")
+}
+
+model SiteCommand {
+  id           String    @id @default(cuid())
+  siteId       String
+  site         Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  commandId    String    @unique
+  action       String
+  payloadJson  Json
+  status       String    @default("pending")
+  responseJson Json?
+  errorCode    String?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  @@index([siteId, status])
+  @@index([status, createdAt])
+  @@map("site_commands")
+}
+
+model SitePluginSnapshot {
+  id                String   @id @default(cuid())
+  siteId            String
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  pluginFile        String
+  slug              String?
+  name              String?
+  versionInstalled  String?
+  versionAvailable  String?
+  hasUpdate         Boolean  @default(false)
+  isActive          Boolean  @default(false)
+  autoUpdateEnabled Boolean  @default(false)
+  author            String?
+  requiresWp        String?
+  requiresPhp       String?
+  lastSyncedAt      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([siteId, pluginFile])
+  @@index([siteId, hasUpdate])
+  @@index([siteId, isActive])
+  @@map("site_plugin_snapshots")
+}
+
+model SiteThemeSnapshot {
+  id                String   @id @default(cuid())
+  siteId            String
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  stylesheet        String
+  template          String?
+  name              String?
+  versionInstalled  String?
+  versionAvailable  String?
+  hasUpdate         Boolean  @default(false)
+  isActive          Boolean  @default(false)
+  autoUpdateEnabled Boolean  @default(false)
+  lastSyncedAt      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([siteId, stylesheet])
+  @@index([siteId, hasUpdate])
+  @@map("site_theme_snapshots")
+}
+
+model SiteCoreSnapshot {
+  id             String   @id @default(cuid())
+  siteId         String   @unique
+  site           Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  currentVersion String
+  latestVersion  String
+  hasUpdate      Boolean  @default(false)
+  updateType     String?
+  lastSyncedAt   DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("site_core_snapshots")
+}

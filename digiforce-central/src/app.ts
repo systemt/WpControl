@@ -40,7 +40,10 @@ export function createApp(): Application {
     express.json({
       limit: '2mb',
       verify: (req, _res, buf) => {
-        (req as express.Request).rawBody = buf.toString('utf8');
+        // The `verify` callback receives http.IncomingMessage; we stash the raw
+        // body as a string so the agent signature middleware can verify HMAC
+        // over the exact bytes. Narrow-cast avoids coupling to express.Request.
+        (req as unknown as { rawBody?: string }).rawBody = buf.toString('utf8');
       },
     })
   );
