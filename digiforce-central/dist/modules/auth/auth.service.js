@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginAdmin = loginAdmin;
 exports.getMe = getMe;
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma_1 = require("../../lib/prisma");
 const jwt_1 = require("../../lib/jwt");
 const api_error_1 = require("../../utils/api-error");
@@ -16,7 +16,7 @@ async function loginAdmin(input) {
         throw api_error_1.ApiError.unauthorized('Invalid credentials');
     if (!user.isActive)
         throw api_error_1.ApiError.forbidden('User is not active');
-    const match = await bcrypt_1.default.compare(input.password, user.passwordHash);
+    const match = await bcryptjs_1.default.compare(input.password, user.passwordHash);
     if (!match)
         throw api_error_1.ApiError.unauthorized('Invalid credentials');
     const updated = await prisma_1.prisma.adminUser.update({
