@@ -1,0 +1,15 @@
+<header class="navbar">
+  <a href="/admin" class="brand">
+    <span class="brand-mark">DF</span>
+    <span class="brand-name"><%= appName %></span>
+  </a>
+  <div class="nav-right">
+    <span class="pill muted">v<%= appVersion %></span>
+    <% if (typeof user !== 'undefined' && user) { %>
+      <span class="nav-user"><%= user.name %></span>
+      <form method="post" action="/logout" class="inline-form">
+        <button type="submit" class="btn btn-ghost">Sign out</button>
+      </form>
+    <% } %>
+  </div>
+</header>

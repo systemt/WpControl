@@ -7,7 +7,7 @@ const EnvSchema = zod_1.z.object({
     PORT: zod_1.z.coerce.number().int().positive().default(4000),
     NODE_ENV: zod_1.z.enum(['development', 'test', 'staging', 'production']).default('development'),
     APP_NAME: zod_1.z.string().min(1).default('DigiForce Central'),
-    APP_VERSION: zod_1.z.string().min(1).default('1.1.0'),
+    APP_VERSION: zod_1.z.string().min(1).default('1.2.0'),
     APP_URL: zod_1.z.string().url().default('http://localhost:4000'),
     JWT_SECRET: zod_1.z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
     DATABASE_URL: zod_1.z.string().min(1, 'DATABASE_URL is required'),

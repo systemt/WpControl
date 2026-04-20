@@ -1,0 +1,119 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <%- include('../partials/flash') %>
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p class="muted">Fleet overview</p>
+      </div>
+
+      <section class="cards">
+        <article class="card">
+          <h3>Total sites</h3>
+          <p class="metric"><%= summary.totalSites %></p>
+        </article>
+        <article class="card">
+          <h3>Connected</h3>
+          <p class="metric text-success"><%= summary.connectedSites %></p>
+        </article>
+        <article class="card">
+          <h3>Disconnected</h3>
+          <p class="metric text-warn"><%= summary.inactiveSites %></p>
+        </article>
+        <article class="card">
+          <h3>Sites with updates</h3>
+          <p class="metric"><%= summary.sitesWithUpdates %></p>
+        </article>
+        <article class="card">
+          <h3>Total commands</h3>
+          <p class="metric"><%= summary.totalCommands %></p>
+        </article>
+        <article class="card">
+          <h3>Failed commands</h3>
+          <p class="metric text-error"><%= summary.failedCommands %></p>
+        </article>
+        <article class="card">
+          <h3>Recent logs (24h)</h3>
+          <p class="metric"><%= summary.recentLogs %></p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Recent sites</h2>
+          <a class="btn btn-ghost" href="/admin/sites">View all →</a>
+        </div>
+        <% if (recentSites.length === 0) { %>
+          <p class="muted">No sites registered yet.</p>
+        <% } else { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Environment</th>
+                <th>Status</th>
+                <th>Last seen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentSites.forEach(function (s) { %>
+                <tr>
+                  <td><a href="/admin/sites/<%= s.id %>"><%= s.name %></a></td>
+                  <td class="muted"><%= s.url %></td>
+                  <td><%= s.environment %></td>
+                  <td><span class="badge badge-<%= s.status %>"><%= s.status %></span></td>
+                  <td><%= formatRelative(s.lastSeenAt) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Recent activity</h2>
+          <a class="btn btn-ghost" href="/admin/logs">View all →</a>
+        </div>
+        <% if (recentLogs.length === 0) { %>
+          <p class="muted">No log entries yet.</p>
+        <% } else { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Level</th>
+                <th>Category</th>
+                <th>Site</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% recentLogs.forEach(function (l) { %>
+                <tr>
+                  <td><%= formatRelative(l.createdAt) %></td>
+                  <td><span class="badge badge-<%= l.level %>"><%= l.level %></span></td>
+                  <td><%= l.category %></td>
+                  <td>
+                    <% if (l.site) { %>
+                      <a href="/admin/sites/<%= l.site.id %>"><%= l.site.name %></a>
+                    <% } else { %>
+                      <span class="muted">—</span>
+                    <% } %>
+                  </td>
+                  <td><%= l.message %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

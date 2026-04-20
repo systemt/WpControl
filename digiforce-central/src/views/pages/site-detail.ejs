@@ -1,0 +1,201 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <div class="page-header">
+        <h1><%= site.name %></h1>
+        <p class="muted"><%= site.url %></p>
+      </div>
+
+      <section class="cards">
+        <article class="card">
+          <h3>Status</h3>
+          <p class="metric"><span class="badge badge-<%= site.status %>"><%= site.status %></span></p>
+        </article>
+        <article class="card">
+          <h3>Environment</h3>
+          <p class="metric"><%= site.environment %></p>
+        </article>
+        <article class="card">
+          <h3>Plugins with updates</h3>
+          <p class="metric"><%= site.pluginCounts.needUpdate %> <span class="muted">/ <%= site.pluginCounts.total %></span></p>
+        </article>
+        <article class="card">
+          <h3>Themes with updates</h3>
+          <p class="metric"><%= site.themeCounts.needUpdate %> <span class="muted">/ <%= site.themeCounts.total %></span></p>
+        </article>
+        <article class="card">
+          <h3>Core update</h3>
+          <p class="metric"><%= core && core.hasUpdate ? 'Yes' : 'No' %></p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Identity</h2>
+        <dl class="meta-grid">
+          <dt>UUID</dt><dd><code><%= site.uuid %></code></dd>
+          <dt>WordPress</dt><dd><%= site.wpVersion || '—' %></dd>
+          <dt>PHP</dt><dd><%= site.phpVersion || '—' %></dd>
+          <dt>Plugin</dt><dd><%= site.pluginVersion || '—' %></dd>
+          <dt>Last seen</dt><dd><%= formatDate(site.lastSeenAt) %></dd>
+          <dt>Last sync</dt><dd><%= formatDate(site.lastSyncAt) %></dd>
+          <dt>Created</dt><dd><%= formatDate(site.createdAt) %></dd>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <h2>Connection</h2>
+        <% if (site.connection) { %>
+          <dl class="meta-grid">
+            <dt>Enabled</dt><dd><%= site.connection.connectionEnabled ? 'Yes' : 'No' %></dd>
+            <dt>Signed requests</dt><dd><%= site.connection.requireSignedRequests ? 'Required' : 'Optional (dev)' %></dd>
+            <dt>Allowed IPs</dt><dd>
+              <% if (site.connection.allowedIps && site.connection.allowedIps.length) { %>
+                <%= site.connection.allowedIps.join(', ') %>
+              <% } else { %>
+                <span class="muted">Any</span>
+              <% } %>
+            </dd>
+          </dl>
+        <% } else { %>
+          <p class="muted">No connection record configured.</p>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <h2>WordPress core</h2>
+        <% if (core) { %>
+          <dl class="meta-grid">
+            <dt>Installed</dt><dd><%= core.currentVersion %></dd>
+            <dt>Available</dt><dd><%= core.latestVersion %></dd>
+            <dt>Update</dt><dd><%= core.hasUpdate ? 'Available' : 'Up to date' %></dd>
+            <dt>Type</dt><dd><%= core.updateType || '—' %></dd>
+            <dt>Synced</dt><dd><%= formatRelative(core.lastSyncedAt) %></dd>
+          </dl>
+        <% } else { %>
+          <p class="muted">Core snapshot not yet received — trigger a /sync from the agent.</p>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Plugins <span class="muted">(<%= plugins.length %>)</span></h2>
+        </div>
+        <% if (plugins.length === 0) { %>
+          <p class="muted">No plugin snapshot received yet.</p>
+        <% } else { %>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Installed</th>
+                  <th>Available</th>
+                  <th>Active</th>
+                  <th>Auto-update</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% plugins.forEach(function (p) { %>
+                  <tr>
+                    <td>
+                      <strong><%= p.name || p.pluginFile %></strong>
+                      <div class="muted"><%= p.pluginFile %></div>
+                    </td>
+                    <td><%= p.versionInstalled || '—' %></td>
+                    <td><%= p.versionAvailable || '—' %></td>
+                    <td><%= p.isActive ? 'Yes' : 'No' %></td>
+                    <td><%= p.autoUpdateEnabled ? 'On' : 'Off' %></td>
+                    <td>
+                      <% if (p.hasUpdate) { %>
+                        <span class="badge badge-warning">Update</span>
+                      <% } else { %>
+                        <span class="badge badge-connected">OK</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Themes <span class="muted">(<%= themes.length %>)</span></h2>
+        </div>
+        <% if (themes.length === 0) { %>
+          <p class="muted">No theme snapshot received yet.</p>
+        <% } else { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Installed</th>
+                <th>Available</th>
+                <th>Active</th>
+                <th>Auto-update</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% themes.forEach(function (t) { %>
+                <tr>
+                  <td>
+                    <strong><%= t.name || t.stylesheet %></strong>
+                    <div class="muted"><%= t.stylesheet %></div>
+                  </td>
+                  <td><%= t.versionInstalled || '—' %></td>
+                  <td><%= t.versionAvailable || '—' %></td>
+                  <td><%= t.isActive ? 'Yes' : 'No' %></td>
+                  <td><%= t.autoUpdateEnabled ? 'On' : 'Off' %></td>
+                  <td>
+                    <% if (t.hasUpdate) { %>
+                      <span class="badge badge-warning">Update</span>
+                    <% } else { %>
+                      <span class="badge badge-connected">OK</span>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <h2>Recent activity</h2>
+        <% if (logs.length === 0) { %>
+          <p class="muted">No logs recorded for this site yet.</p>
+        <% } else { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Level</th>
+                <th>Category</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% logs.forEach(function (l) { %>
+                <tr>
+                  <td><%= formatRelative(l.createdAt) %></td>
+                  <td><span class="badge badge-<%= l.level %>"><%= l.level %></span></td>
+                  <td><%= l.category %></td>
+                  <td><%= l.message %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        <% } %>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

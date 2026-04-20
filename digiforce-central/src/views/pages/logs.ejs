@@ -1,0 +1,77 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <div class="page-header">
+        <h1>Logs</h1>
+        <p class="muted">Latest <%= logs.length %> entr<%= logs.length === 1 ? 'y' : 'ies' %></p>
+      </div>
+
+      <form method="get" action="/admin/logs" class="toolbar">
+        <select name="level">
+          <option value="">All levels</option>
+          <% levels.forEach(function (l) { %>
+            <option value="<%= l %>" <%= filters.level === l ? 'selected' : '' %>><%= l %></option>
+          <% }); %>
+        </select>
+        <select name="category">
+          <option value="">All categories</option>
+          <% categories.forEach(function (c) { %>
+            <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+          <% }); %>
+        </select>
+        <select name="siteId">
+          <option value="">All sites</option>
+          <% sites.forEach(function (s) { %>
+            <option value="<%= s.id %>" <%= filters.siteId === s.id ? 'selected' : '' %>><%= s.name %></option>
+          <% }); %>
+        </select>
+        <button class="btn" type="submit">Apply</button>
+        <% if (filters.level || filters.category || filters.siteId) { %>
+          <a class="btn btn-ghost" href="/admin/logs">Reset</a>
+        <% } %>
+      </form>
+
+      <section class="panel">
+        <% if (logs.length === 0) { %>
+          <p class="muted">No logs match the current filters.</p>
+        <% } else { %>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Level</th>
+                  <th>Category</th>
+                  <th>Site</th>
+                  <th>Message</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% logs.forEach(function (l) { %>
+                  <tr>
+                    <td><%= formatDate(l.createdAt) %></td>
+                    <td><span class="badge badge-<%= l.level %>"><%= l.level %></span></td>
+                    <td><%= l.category %></td>
+                    <td>
+                      <% if (l.site) { %>
+                        <a href="/admin/sites/<%= l.site.id %>"><%= l.site.name %></a>
+                      <% } else { %>
+                        <span class="muted">—</span>
+                      <% } %>
+                    </td>
+                    <td><%= l.message %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

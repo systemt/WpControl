@@ -1,0 +1,27 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body class="auth-body">
+  <main class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-mark brand-mark-lg">DF</span>
+      <h1><%= appName %></h1>
+    </div>
+    <p class="muted">Sign in to the admin console</p>
+    <% if (error) { %>
+      <div class="flash flash-error"><%= error %></div>
+    <% } %>
+    <form method="post" action="/login" class="auth-form">
+      <% if (next) { %><input type="hidden" name="next" value="<%= next %>" /><% } %>
+      <label>
+        <span>Email</span>
+        <input type="email" name="email" autocomplete="username" required value="<%= email %>" />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+    <p class="auth-footer muted">v<%= appVersion %></p>
+  </main>
+</body>
+</html>

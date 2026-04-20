@@ -1,0 +1,75 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <div class="page-header">
+        <h1>Sites</h1>
+        <p class="muted"><%= sites.length %> site<%= sites.length === 1 ? '' : 's' %></p>
+      </div>
+
+      <form method="get" action="/admin/sites" class="toolbar">
+        <input
+          type="search"
+          name="q"
+          placeholder="Search by name or URL"
+          value="<%= filters.q %>"
+        />
+        <select name="status">
+          <option value="">All statuses</option>
+          <% statusOptions.forEach(function (s) { %>
+            <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+          <% }); %>
+        </select>
+        <button class="btn" type="submit">Apply</button>
+        <% if (filters.q || filters.status) { %>
+          <a class="btn btn-ghost" href="/admin/sites">Reset</a>
+        <% } %>
+      </form>
+
+      <section class="panel">
+        <% if (sites.length === 0) { %>
+          <p class="muted">No sites match the current filters.</p>
+        <% } else { %>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>URL</th>
+                  <th>Env</th>
+                  <th>Status</th>
+                  <th>WP</th>
+                  <th>PHP</th>
+                  <th>Plugin</th>
+                  <th>Last seen</th>
+                  <th>Last sync</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% sites.forEach(function (s) { %>
+                  <tr>
+                    <td><a href="/admin/sites/<%= s.id %>"><%= s.name %></a></td>
+                    <td class="muted"><%= s.url %></td>
+                    <td><%= s.environment %></td>
+                    <td><span class="badge badge-<%= s.status %>"><%= s.status %></span></td>
+                    <td><%= s.wpVersion || '—' %></td>
+                    <td><%= s.phpVersion || '—' %></td>
+                    <td><%= s.pluginVersion || '—' %></td>
+                    <td><%= formatRelative(s.lastSeenAt) %></td>
+                    <td><%= formatRelative(s.lastSyncAt) %></td>
+                    <td><a class="btn btn-small" href="/admin/sites/<%= s.id %>">View</a></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

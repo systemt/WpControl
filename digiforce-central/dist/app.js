@@ -4,9 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createApp = createApp;
+const path_1 = __importDefault(require("path"));
 const express_1 = __importDefault(require("express"));
 const helmet_1 = __importDefault(require("helmet"));
 const cors_1 = __importDefault(require("cors"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const config_1 = require("./config");
 const request_logger_1 = require("./middlewares/request-logger");
 const error_handler_1 = require("./middlewares/error-handler");
@@ -17,12 +19,15 @@ const sites_routes_1 = __importDefault(require("./modules/sites/sites.routes"));
 const dashboard_routes_1 = __importDefault(require("./modules/dashboard/dashboard.routes"));
 const system_routes_1 = __importDefault(require("./modules/system/system.routes"));
 const agent_routes_1 = __importDefault(require("./modules/agent/agent.routes"));
+const admin_ui_routes_1 = __importDefault(require("./modules/admin-ui/admin-ui.routes"));
 function createApp() {
     const app = (0, express_1.default)();
     app.disable('x-powered-by');
-    // Trust the first proxy hop so req.ip / X-Forwarded-For is meaningful when
-    // deployed behind a single load balancer. Override in .env-driven deploys.
     app.set('trust proxy', 1);
+    // EJS view engine — views live next to the compiled code so the same
+    // relative path works in dev (src/views) and prod (dist/views after copy).
+    app.set('view engine', 'ejs');
+    app.set('views', path_1.default.join(__dirname, 'views'));
     app.use((0, helmet_1.default)());
     app.use((0, cors_1.default)({
         origin: config_1.config.CORS_ORIGIN === '*'
@@ -30,19 +35,21 @@ function createApp() {
             : config_1.config.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean),
         credentials: true,
     }));
-    // Capture the exact raw request body so the agent signature middleware can
-    // verify HMAC over the same bytes the WP plugin signed. Doesn't affect
-    // downstream handlers — req.body is still the parsed JSON.
+    // Cookie parser for the admin UI session cookie.
+    app.use((0, cookie_parser_1.default)());
+    // URL-encoded body parser for the login form.
+    app.use(express_1.default.urlencoded({ extended: false, limit: '1mb' }));
+    // JSON parser + raw-body capture for the agent HMAC middleware.
     app.use(express_1.default.json({
         limit: '2mb',
         verify: (req, _res, buf) => {
-            // The `verify` callback receives http.IncomingMessage; we stash the raw
-            // body as a string so the agent signature middleware can verify HMAC
-            // over the exact bytes. Narrow-cast avoids coupling to express.Request.
             req.rawBody = buf.toString('utf8');
         },
     }));
     app.use(request_logger_1.requestLogger);
+    // Static admin assets — CSS, future icons, etc.
+    app.use('/public', express_1.default.static(path_1.default.join(__dirname, 'public'), { maxAge: '1h' }));
+    // REST API (unchanged)
     const api = express_1.default.Router();
     api.use('/auth', auth_routes_1.default);
     api.use('/admin-users', admin_users_routes_1.default);
@@ -51,6 +58,8 @@ function createApp() {
     api.use('/system', system_routes_1.default);
     api.use('/agent', agent_routes_1.default);
     app.use('/api/v1', api);
+    // Server-rendered admin UI (login + /admin/*).
+    app.use(admin_ui_routes_1.default);
     app.use(not_found_1.notFoundHandler);
     app.use(error_handler_1.errorHandler);
     return app;

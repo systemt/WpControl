@@ -1,8 +1,8 @@
-# DigiForce Central — v1.1.0
+# DigiForce Central — v1.2.0
 
 Central management backend for the DigiForce fleet of WordPress sites running the DigiForce WP Agent plugin.
 
-Step 2 adds the first real communication layer between the central and the WordPress agents: registration, heartbeat, and full plugin/theme/core sync — all under HMAC-SHA256 with replay protection. Admin auth, CRUD for sites, and the dashboard from step 1 remain unchanged.
+Step 3 adds a **server-rendered admin console** on top of the existing JSON API: a cookie-based login flow, dashboard with fleet counters, a searchable sites list, per-site detail pages (plugin/theme/core snapshots + recent logs), and a filterable logs view. Step 2's agent communication layer (HMAC-signed `/register`, `/heartbeat`, `/sync`) and step 1's admin JWT API remain unchanged.
 
 ## Stack
 
@@ -46,6 +46,26 @@ npm run build && npm start
 - Role: `super_admin`
 
 **Change the password immediately after first login.**
+
+## Admin console (server-rendered)
+
+Open `http://localhost:4000/login` and sign in with the seeded credentials. After login a `dfc_admin_token` httpOnly cookie is set (JWT, `sameSite=lax`, `secure` in production) and you're redirected to `/admin`.
+
+| Path | Purpose |
+|---|---|
+| `GET  /login`              | Sign-in page |
+| `POST /login`              | Form submission — sets the admin cookie |
+| `POST /logout`             | Clears the cookie, redirects to `/login` |
+| `GET  /admin`              | Dashboard — counters + recent sites + recent logs |
+| `GET  /admin/sites`        | Searchable sites table (search by name/url, filter by status) |
+| `GET  /admin/sites/:id`    | Site detail — identity, connection, core/plugins/themes snapshots, recent activity |
+| `GET  /admin/logs`         | Logs table with level / category / site filters |
+
+Static admin assets (CSS, future icons) are served from `/public/*`.
+
+**Default admin** — same as the JWT API:
+- Email: `admin@digiforce.local`
+- Password: `Admin123!`
 
 ## API surface
 

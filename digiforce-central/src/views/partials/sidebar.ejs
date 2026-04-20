@@ -1,0 +1,8 @@
+<aside class="sidebar">
+  <nav>
+    <a href="/admin" class="<%= currentPath === '/admin' ? 'active' : '' %>">Dashboard</a>
+    <a href="/admin/sites" class="<%= currentPath.indexOf('/admin/sites') === 0 ? 'active' : '' %>">Sites</a>
+    <a href="/admin/logs" class="<%= currentPath.indexOf('/admin/logs') === 0 ? 'active' : '' %>">Logs</a>
+  </nav>
+  <div class="sidebar-footer muted">DigiForce Central<br />v<%= appVersion %></div>
+</aside>
