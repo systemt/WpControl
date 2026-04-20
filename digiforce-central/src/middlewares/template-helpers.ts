@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { config } from '../config';
+import { consumeFlash } from '../lib/flash';
 
 /**
  * Expose a small set of helpers and per-request metadata to every EJS render.
@@ -32,5 +33,9 @@ export const injectTemplateHelpers: RequestHandler = (req, res, next) => {
   res.locals.currentPath = req.path;
   res.locals.appVersion = config.APP_VERSION;
   res.locals.appName = config.APP_NAME;
+
+  // Read-and-clear any pending flash so the templates can render it once.
+  res.locals.flash = consumeFlash(req, res);
+
   next();
 };

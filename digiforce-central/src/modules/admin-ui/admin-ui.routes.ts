@@ -7,15 +7,14 @@ import {
   postLogout,
   getDashboard,
   getSitesList,
+  getSiteNew,
+  postSiteCreate,
   getSiteDetailPage,
   getLogsPage,
 } from './admin-ui.controller';
 
 const router = Router();
 
-// These two run on every admin-UI request (login included) so:
-//   • templates always have formatDate/formatRelative/appVersion helpers
-//   • `req.user` is set if a valid cookie is present (lets /login redirect)
 router.use(injectTemplateHelpers);
 router.use(loadAdminUser);
 
@@ -24,8 +23,10 @@ router.get('/login', getLogin);
 router.post('/login', postLogin);
 router.post('/logout', postLogout);
 
-// Protected admin pages
+// Protected admin pages — order matters: /admin/sites/new must come before /:id
 router.get('/admin', requireAdminUI, getDashboard);
+router.get('/admin/sites/new', requireAdminUI, getSiteNew);
+router.post('/admin/sites', requireAdminUI, postSiteCreate);
 router.get('/admin/sites', requireAdminUI, getSitesList);
 router.get('/admin/sites/:id', requireAdminUI, getSiteDetailPage);
 router.get('/admin/logs', requireAdminUI, getLogsPage);

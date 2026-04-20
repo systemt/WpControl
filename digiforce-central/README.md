@@ -1,8 +1,8 @@
-# DigiForce Central — v1.2.0
+# DigiForce Central — v1.3.0
 
 Central management backend for the DigiForce fleet of WordPress sites running the DigiForce WP Agent plugin.
 
-Step 3 adds a **server-rendered admin console** on top of the existing JSON API: a cookie-based login flow, dashboard with fleet counters, a searchable sites list, per-site detail pages (plugin/theme/core snapshots + recent logs), and a filterable logs view. Step 2's agent communication layer (HMAC-signed `/register`, `/heartbeat`, `/sync`) and step 1's admin JWT API remain unchanged.
+Step 4 extends the admin console: provision new sites directly from the UI (with a one-time secret reveal), environment filter on the sites list, a two-column identity/connection view on site detail, a command-history table per site, and polished empty states across the UI. Step 3's login + dashboard + logs, step 2's agent communication (`/register`, `/heartbeat`, `/sync`), and step 1's JWT API remain unchanged.
 
 ## Stack
 
@@ -57,8 +57,10 @@ Open `http://localhost:4000/login` and sign in with the seeded credentials. Afte
 | `POST /login`              | Form submission — sets the admin cookie |
 | `POST /logout`             | Clears the cookie, redirects to `/login` |
 | `GET  /admin`              | Dashboard — counters + recent sites + recent logs |
-| `GET  /admin/sites`        | Searchable sites table (search by name/url, filter by status) |
-| `GET  /admin/sites/:id`    | Site detail — identity, connection, core/plugins/themes snapshots, recent activity |
+| `GET  /admin/sites`        | Searchable sites table (search, status + environment filters) |
+| `GET  /admin/sites/new`    | New-site form |
+| `POST /admin/sites`        | Create site — redirects to detail with a one-time secret reveal |
+| `GET  /admin/sites/:id`    | Site detail — identity, connection, snapshots, commands, recent activity |
 | `GET  /admin/logs`         | Logs table with level / category / site filters |
 
 Static admin assets (CSS, future icons) are served from `/public/*`.

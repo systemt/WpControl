@@ -3,6 +3,8 @@ import { prisma } from '../../lib/prisma';
 import { getSummary } from '../dashboard/dashboard.service';
 import * as sitesService from '../sites/sites.service';
 
+const RECENTLY_SEEN_MS = 15 * 60 * 1000; // 15 minutes
+
 export async function loadDashboard() {
   const [summary, recentSites, recentLogs] = await Promise.all([
     getSummary(),
@@ -28,7 +30,7 @@ export async function loadDashboard() {
   return { summary, recentSites, recentLogs };
 }
 
-export async function listSites(filters: { q?: string; status?: string }) {
+export async function listSites(filters: { q?: string; status?: string; environment?: string }) {
   const where: Prisma.SiteWhereInput = {};
   const q = filters.q?.trim();
   if (q) {
@@ -39,6 +41,9 @@ export async function listSites(filters: { q?: string; status?: string }) {
   }
   if (filters.status) {
     where.status = filters.status;
+  }
+  if (filters.environment) {
+    where.environment = filters.environment;
   }
 
   return prisma.site.findMany({
@@ -52,7 +57,7 @@ export async function listSites(filters: { q?: string; status?: string }) {
 
 export async function getSiteDetail(id: string) {
   const site = await sitesService.getSite(id);
-  const [plugins, themes, core, logs] = await Promise.all([
+  const [plugins, themes, core, logs, commands] = await Promise.all([
     prisma.sitePluginSnapshot.findMany({
       where: { siteId: id },
       orderBy: [{ hasUpdate: 'desc' }, { isActive: 'desc' }, { name: 'asc' }],
@@ -68,8 +73,18 @@ export async function getSiteDetail(id: string) {
       orderBy: { createdAt: 'desc' },
       take: 30,
     }),
+    prisma.siteCommand.findMany({
+      where: { siteId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    }),
   ]);
-  return { site, plugins, themes, core, logs };
+
+  const recentlySeen = Boolean(
+    site.lastSeenAt && Date.now() - new Date(site.lastSeenAt as Date).getTime() < RECENTLY_SEEN_MS
+  );
+
+  return { site, plugins, themes, core, logs, commands, recentlySeen };
 }
 
 export async function listLogs(filters: { level?: string; category?: string; siteId?: string }) {
