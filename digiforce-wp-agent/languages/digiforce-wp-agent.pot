@@ -1,0 +1,273 @@
+# Copyright (C) 2026 DigiForce
+# This file is distributed under the same license as the DigiForce WP Agent plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: DigiForce WP Agent 1.0.0\n"
+"Report-Msgid-Bugs-To: https://digiforce.example.com/support\n"
+"POT-Creation-Date: 2026-04-19 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: DigiForce\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SearchPath-0: .\n"
+
+msgid "DigiForce Agent"
+msgstr ""
+
+msgid "DigiForce WP Agent"
+msgstr ""
+
+msgid "Plugin activated."
+msgstr ""
+
+msgid "Settings saved."
+msgstr ""
+
+msgid "Save Settings"
+msgstr ""
+
+msgid "Sync Status Now"
+msgstr ""
+
+msgid "Scan Updates Now"
+msgstr ""
+
+msgid "Rotate Secret Key"
+msgstr ""
+
+msgid "Generate New Site UUID"
+msgstr ""
+
+msgid "Site Overview"
+msgstr ""
+
+msgid "Connection Settings"
+msgstr ""
+
+msgid "Recent Activity"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Site UUID"
+msgstr ""
+
+msgid "Central Server URL"
+msgstr ""
+
+msgid "Connection Enabled"
+msgstr ""
+
+msgid "Connection Status"
+msgstr ""
+
+msgid "Last Sync"
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "WordPress Version"
+msgstr ""
+
+msgid "PHP Version"
+msgstr ""
+
+msgid "Installed Plugins"
+msgstr ""
+
+msgid "Plugins Needing Updates"
+msgstr ""
+
+msgid "Themes Needing Updates"
+msgstr ""
+
+msgid "Core Update Available"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Environment"
+msgstr ""
+
+msgid "Allowed IPs (optional)"
+msgstr ""
+
+msgid "Remote Permissions"
+msgstr ""
+
+msgid "Allow remote plugin updates"
+msgstr ""
+
+msgid "Allow bulk plugin updates"
+msgstr ""
+
+msgid "Allow remote plugin activation"
+msgstr ""
+
+msgid "Allow remote plugin deactivation"
+msgstr ""
+
+msgid "Require HMAC SHA256 signature on all REST requests (strongly recommended)."
+msgstr ""
+
+msgid "Log Retention (days)"
+msgstr ""
+
+msgid "Debug Mode"
+msgstr ""
+
+msgid "No log entries yet."
+msgstr ""
+
+msgid "When"
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Not configured"
+msgstr ""
+
+msgid "Agent connection is disabled."
+msgstr ""
+
+msgid "Missing required security headers."
+msgstr ""
+
+msgid "Site UUID mismatch."
+msgstr ""
+
+msgid "Request timestamp is invalid or expired."
+msgstr ""
+
+msgid "Invalid request ID."
+msgstr ""
+
+msgid "This request has already been processed."
+msgstr ""
+
+msgid "Secret key not configured."
+msgstr ""
+
+msgid "Invalid request signature."
+msgstr ""
+
+msgid "IP address not allowed."
+msgstr ""
+
+msgid "Missing command_id."
+msgstr ""
+
+msgid "Missing action."
+msgstr ""
+
+msgid "Action is not supported."
+msgstr ""
+
+msgid "Missing plugin_file."
+msgstr ""
+
+msgid "Plugin not installed."
+msgstr ""
+
+msgid "Plugin is already active."
+msgstr ""
+
+msgid "Plugin is already inactive."
+msgstr ""
+
+msgid "Plugin activated."
+msgstr ""
+
+msgid "Plugin deactivated."
+msgstr ""
+
+msgid "Refusing to deactivate the agent itself."
+msgstr ""
+
+msgid "No update available for this plugin."
+msgstr ""
+
+msgid "Plugin update failed."
+msgstr ""
+
+msgid "Filesystem is not ready for updates."
+msgstr ""
+
+msgid "Plugin updated successfully."
+msgstr ""
+
+msgid "plugin_files must be a non-empty array."
+msgstr ""
+
+msgid "All plugins updated successfully."
+msgstr ""
+
+msgid "Some plugins failed to update."
+msgstr ""
+
+msgid "One or more plugin updates failed."
+msgstr ""
+
+msgid "Auto-update enabled."
+msgstr ""
+
+msgid "Auto-update disabled."
+msgstr ""
+
+msgid "Status returned."
+msgstr ""
+
+msgid "Update scan completed."
+msgstr ""
+
+msgid "Sync completed."
+msgstr ""
+
+msgid "A new Site UUID has been generated."
+msgstr ""
+
+msgid "The secret key has been rotated. Update your central server immediately."
+msgstr ""
+
+msgid "You do not have permission to view this page."
+msgstr ""
+
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: strings
+msgid "%s ago"
+msgstr ""
+
+#: strings
+msgid "Central server replied with HTTP %d."
+msgstr ""

@@ -1,0 +1,105 @@
+/*
+ * DigiForce WP Agent – admin styles.
+ */
+
+.digiforce-wpa-wrap .digiforce-wpa-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+	gap: 20px;
+	margin-top: 20px;
+}
+
+.digiforce-wpa-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	padding: 20px;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	margin-bottom: 20px;
+}
+
+.digiforce-wpa-card h2 {
+	margin-top: 0;
+}
+
+.digiforce-wpa-info th {
+	width: 40%;
+}
+
+.digiforce-wpa-info small {
+	color: #646970;
+	font-weight: 400;
+	margin-left: 6px;
+}
+
+.digiforce-wpa-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.digiforce-wpa-inline-form {
+	display: inline-block;
+}
+
+.digiforce-wpa-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #fff;
+}
+
+.digiforce-wpa-badge.on {
+	background: #2c8a3a;
+}
+
+.digiforce-wpa-badge.off {
+	background: #8c8f94;
+}
+
+.digiforce-wpa-count {
+	display: inline-block;
+	min-width: 24px;
+	padding: 2px 8px;
+	border-radius: 10px;
+	background: #f0f0f1;
+	color: #1d2327;
+	font-weight: 600;
+	text-align: center;
+}
+
+.digiforce-wpa-count--warn {
+	background: #fcf2d6;
+	color: #8a6d00;
+	border: 1px solid #f0c36d;
+}
+
+.digiforce-wpa-level {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	text-transform: uppercase;
+	font-weight: 600;
+	color: #fff;
+}
+
+.digiforce-wpa-level-info {
+	background: #2271b1;
+}
+
+.digiforce-wpa-level-warning {
+	background: #b26200;
+}
+
+.digiforce-wpa-level-error {
+	background: #b32d2e;
+}
+
+.digiforce-wpa-logs td,
+.digiforce-wpa-logs th {
+	vertical-align: top;
+}
