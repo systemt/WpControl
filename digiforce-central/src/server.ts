@@ -1,6 +1,8 @@
+import 'dotenv/config';
 import { createApp } from './app';
 import { config } from './config';
 import { prisma } from './lib/prisma';
+import { startCommandQueueWorker } from './modules/commands/commands.worker';
 
 async function main() {
   const app = createApp();
@@ -11,9 +13,18 @@ async function main() {
     );
   });
 
+  // Kick off the DB-backed command queue worker in-process. Render single-dyno
+  // deployments get async dispatch without a separate worker process.
+  const queueWorker = startCommandQueueWorker();
+
   const shutdown = (signal: string) => {
     console.log(`Received ${signal}, shutting down`);
     server.close(async () => {
+      try {
+        await queueWorker.stop();
+      } catch (err) {
+        console.error('queue worker stop error:', err);
+      }
       try {
         await prisma.$disconnect();
       } finally {

@@ -339,11 +339,22 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 .badge-error { background: var(--error-bg); color: var(--error-fg); }
 
 /* Command status badges */
-.badge-pending { background: var(--info-bg); color: var(--info-fg); }
+.badge-pending { background: var(--muted-bg); color: var(--muted-fg); }
+.badge-processing { background: var(--accent-soft); color: var(--accent); }
 .badge-sent { background: var(--accent-soft); color: var(--accent); }
 .badge-succeeded { background: var(--success-bg); color: var(--success-fg); }
 .badge-failed { background: var(--error-bg); color: var(--error-fg); }
 .badge-cancelled { background: var(--muted-bg); color: var(--muted-fg); }
+
+/* Pulse on in-flight rows so "processing" feels alive without JS. */
+.badge-processing,
+.badge-pending {
+  animation: dfc-pulse 1.6s ease-in-out infinite;
+}
+@keyframes dfc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
 
 .pill {
   display: inline-block;
@@ -525,8 +536,145 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 }
 
 /* ---------------------------------------------------------------------- */
+/*  Impersonation banner                                                   */
+/* ---------------------------------------------------------------------- */
+
+.impersonation-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #fef3c7;
+  color: #78350f;
+  border-bottom: 1px solid #fcd34d;
+  font-size: 13px;
+  font-weight: 500;
+  position: sticky;
+  top: 56px;
+  z-index: 9;
+}
+
+.impersonation-banner strong { font-weight: 700; }
+.impersonation-banner .muted { color: #92400e; opacity: 0.8; }
+.impersonation-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.impersonation-stop {
+  background: #78350f;
+  color: #fef3c7;
+  border-color: #78350f;
+}
+.impersonation-stop:hover {
+  background: #5c2a0c;
+  border-color: #5c2a0c;
+  color: #fef3c7;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Bulk toolbar                                                           */
+/* ---------------------------------------------------------------------- */
+
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.bulk-toolbar .muted { font-size: 12px; }
+.bulk-toolbar-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bulk-toolbar [data-bulk-submit]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.col-narrow { width: 32px; text-align: center; }
+
+/* ---------------------------------------------------------------------- */
 /*  Responsive                                                             */
 /* ---------------------------------------------------------------------- */
+
+.command-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 200px;
+}
+
+.row-actions .inline-form { margin: 0; }
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.plan-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-card.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.plan-card h3 { margin: 0; font-size: 16px; }
+
+.plan-price {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.plan-price .muted { font-size: 13px; font-weight: 500; margin-left: 4px; }
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.plan-features li::before {
+  content: "✓";
+  color: var(--success);
+  font-weight: 700;
+  margin-right: 6px;
+}
 
 @media (max-width: 960px) {
   .two-col { grid-template-columns: 1fr; }

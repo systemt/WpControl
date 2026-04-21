@@ -5,10 +5,8 @@ import { verifyToken } from '../lib/jwt';
 export const ADMIN_COOKIE_NAME = 'dfc_admin_token';
 
 /**
- * Soft-loads the currently signed-in admin from the cookie. Never redirects —
+ * Soft-loads the currently signed-in user from the cookie. Never redirects —
  * just populates `req.user` and `res.locals.user` if a valid token is present.
- * Runs on every admin-UI request so the login page can detect an existing
- * session and the dashboard templates can render the user's name.
  */
 export const loadAdminUser: RequestHandler = async (req, res, next) => {
   const token = req.cookies?.[ADMIN_COOKIE_NAME];
@@ -16,7 +14,7 @@ export const loadAdminUser: RequestHandler = async (req, res, next) => {
 
   try {
     const payload = verifyToken(token);
-    const user = await prisma.adminUser.findUnique({ where: { id: payload.sub } });
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user || !user.isActive) {
       res.clearCookie(ADMIN_COOKIE_NAME, { path: '/' });
       return next();
@@ -36,13 +34,33 @@ export const loadAdminUser: RequestHandler = async (req, res, next) => {
 };
 
 /**
- * Hard gate for /admin/* pages — redirects anonymous visitors to /login
- * preserving their intended destination via the `next` query parameter.
+ * Hard gate for /admin/* pages — redirects anonymous visitors to /login.
  */
 export const requireAdminUI: RequestHandler = (req, res, next) => {
   if (!req.user) {
     const target = encodeURIComponent(req.originalUrl);
     return res.redirect(`/login?next=${target}`);
+  }
+  next();
+};
+
+/**
+ * Gate to super-admin role inside the EJS app. Renders a simple 403 rather
+ * than redirecting — a logged-in non-admin should see "access denied".
+ */
+export const requireAdminRoleUI: RequestHandler = (req, res, next) => {
+  if (!req.user) {
+    const target = encodeURIComponent(req.originalUrl);
+    return res.redirect(`/login?next=${target}`);
+  }
+  if (req.user.role !== 'admin') {
+    res.status(403).render('pages/login', {
+      title: 'Access denied',
+      error: 'Administrator access required.',
+      email: '',
+      next: '',
+    });
+    return;
   }
   next();
 };

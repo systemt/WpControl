@@ -15,6 +15,8 @@ import sitesRoutes from './modules/sites/sites.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import systemRoutes from './modules/system/system.routes';
 import agentRoutes from './modules/agent/agent.routes';
+import plansRoutes from './modules/plans/plans.routes';
+import billingRoutes from './modules/billing/billing.routes';
 import adminUIRoutes from './modules/admin-ui/admin-ui.routes';
 
 export function createApp(): Application {
@@ -23,8 +25,6 @@ export function createApp(): Application {
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
 
-  // EJS view engine — views live next to the compiled code so the same
-  // relative path works in dev (src/views) and prod (dist/views after copy).
   app.set('view engine', 'ejs');
   app.set('views', path.join(__dirname, 'views'));
 
@@ -38,14 +38,8 @@ export function createApp(): Application {
       credentials: true,
     })
   );
-
-  // Cookie parser for the admin UI session cookie.
   app.use(cookieParser());
-
-  // URL-encoded body parser for the login form.
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
-
-  // JSON parser + raw-body capture for the agent HMAC middleware.
   app.use(
     express.json({
       limit: '2mb',
@@ -54,13 +48,11 @@ export function createApp(): Application {
       },
     })
   );
-
   app.use(requestLogger);
 
-  // Static admin assets — CSS, future icons, etc.
   app.use('/public', express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
-  // REST API (unchanged)
+  // Public + authenticated JSON API
   const api = express.Router();
   api.use('/auth', authRoutes);
   api.use('/admin-users', adminUsersRoutes);
@@ -68,9 +60,11 @@ export function createApp(): Application {
   api.use('/dashboard', dashboardRoutes);
   api.use('/system', systemRoutes);
   api.use('/agent', agentRoutes);
+  api.use('/plans', plansRoutes);
+  api.use('/billing', billingRoutes);
   app.use('/api/v1', api);
 
-  // Server-rendered admin UI (login + /admin/*).
+  // Server-rendered admin / user console (EJS).
   app.use(adminUIRoutes);
 
   app.use(notFoundHandler);

@@ -1,0 +1,81 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <%- include('../partials/page-header', {
+        title: 'Billing',
+        subtitle: 'Plan, usage, and subscription status.',
+      }) %>
+
+      <%- include('../partials/flash') %>
+
+      <section class="cards">
+        <article class="card">
+          <h3>Current plan</h3>
+          <p class="metric"><%= subscription ? subscription.plan.name : '—' %></p>
+          <% if (subscription) { %>
+            <p class="muted">Status: <span class="badge badge-<%= subscription.status === 'active' ? 'connected' : subscription.status === 'trialing' ? 'info' : subscription.status === 'canceled' ? 'disabled' : 'warning' %>"><%= subscription.status %></span></p>
+          <% } %>
+        </article>
+        <article class="card">
+          <h3>Sites used</h3>
+          <p class="metric">
+            <%= usage %><% if (subscription && subscription.plan.maxSites !== null) { %> <span class="muted">/ <%= subscription.plan.maxSites %></span><% } %>
+          </p>
+          <p class="muted">
+            <% if (subscription && subscription.plan.maxSites === null) { %>Unlimited<% } %>
+          </p>
+        </article>
+        <article class="card">
+          <h3>Period ends</h3>
+          <p class="metric" style="font-size: 18px;">
+            <%= subscription && subscription.currentPeriodEnd ? formatDate(subscription.currentPeriodEnd) : '—' %>
+          </p>
+          <% if (subscription && subscription.trialEndsAt) { %>
+            <p class="muted">Trial ends <%= formatRelative(subscription.trialEndsAt) %></p>
+          <% } %>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Available plans</h2>
+        <div class="plans-grid">
+          <% plans.forEach(function (p) { %>
+            <div class="plan-card <%= subscription && subscription.planId === p.id ? 'current' : '' %>">
+              <h3><%= p.name %></h3>
+              <p class="plan-price">$<%= (p.priceMonthly / 100).toFixed(2) %><span class="muted">/mo</span></p>
+              <p class="muted"><%= p.description %></p>
+              <ul class="plan-features">
+                <% (Array.isArray(p.features) ? p.features : []).forEach(function (f) { %>
+                  <li><%= f %></li>
+                <% }); %>
+              </ul>
+              <% if (subscription && subscription.planId === p.id) { %>
+                <button class="btn" disabled>Current plan</button>
+              <% } else { %>
+                <form method="post" action="/billing/change-plan" class="inline-form">
+                  <input type="hidden" name="plan" value="<%= p.slug %>" />
+                  <button type="submit" class="btn btn-primary"><%= subscription ? 'Switch to ' + p.name : 'Choose ' + p.name %></button>
+                </form>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+      </section>
+
+      <% if (subscription && subscription.status !== 'canceled') { %>
+        <section class="panel">
+          <h2>Cancel subscription</h2>
+          <p class="muted">Existing sites will stay in the console, but you won't be able to add new ones until you re-subscribe.</p>
+          <form method="post" action="/billing/cancel" class="inline-form" onsubmit="return confirm('Cancel your subscription?');">
+            <button type="submit" class="btn">Cancel subscription</button>
+          </form>
+        </section>
+      <% } %>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

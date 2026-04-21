@@ -13,6 +13,10 @@ declare module 'express-serve-static-core' {
   }
 }
 
+/**
+ * Bearer-token auth for the JSON API. Resolves a User row and rejects
+ * inactive / missing users.
+ */
 export const requireAuth: RequestHandler = async (req, _res, next) => {
   try {
     const header = req.header('authorization');
@@ -29,7 +33,7 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
       return next(ApiError.unauthorized('Invalid or expired token'));
     }
 
-    const user = await prisma.adminUser.findUnique({ where: { id: payload.sub } });
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) return next(ApiError.unauthorized('User not found'));
     if (!user.isActive) return next(ApiError.forbidden('User is not active'));
 

@@ -1,0 +1,32 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body class="auth-body">
+  <main class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-mark brand-mark-lg">DF</span>
+      <h1><%= appName %></h1>
+    </div>
+    <p class="muted">Create your account</p>
+    <% if (error) { %>
+      <div class="flash flash-error"><%= error %></div>
+    <% } %>
+    <form method="post" action="/signup" class="auth-form">
+      <label>
+        <span>Name</span>
+        <input type="text" name="name" autocomplete="name" required value="<%= values.name %>" />
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" name="email" autocomplete="email" required value="<%= values.email %>" />
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" autocomplete="new-password" minlength="8" required />
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+    <p class="auth-footer muted">
+      Already have an account? <a href="/login">Sign in</a>
+    </p>
+  </main>
+</body>
+</html>

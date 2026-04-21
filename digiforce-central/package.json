@@ -1,6 +1,6 @@
 {
   "name": "digiforce-central",
-  "version": "1.3.0",
+  "version": "1.7.0",
   "private": true,
   "description": "Central management system for the DigiForce WordPress fleet",
   "main": "dist/server.js",
