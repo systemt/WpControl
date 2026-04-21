@@ -1,0 +1,15 @@
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><%= title %></h1>
+    <% if (typeof subtitle !== 'undefined' && subtitle) { %>
+      <p class="muted"><%= subtitle %></p>
+    <% } %>
+  </div>
+  <% if (typeof actions !== 'undefined' && actions && actions.length) { %>
+    <div class="page-header-right">
+      <% actions.forEach(function (a) { %>
+        <a href="<%= a.href %>" class="btn <%= a.primary ? 'btn-primary' : '' %>"><%= a.label %></a>
+      <% }); %>
+    </div>
+  <% } %>
+</div>

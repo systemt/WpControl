@@ -4,10 +4,12 @@
   <div class="layout">
     <%- include('../partials/sidebar') %>
     <main class="content">
-      <div class="page-header">
-        <h1>Logs</h1>
-        <p class="muted">Latest <%= logs.length %> entr<%= logs.length === 1 ? 'y' : 'ies' %></p>
-      </div>
+      <%- include('../partials/page-header', {
+        title: 'Logs',
+        subtitle: 'Latest ' + logs.length + ' entr' + (logs.length === 1 ? 'y' : 'ies'),
+      }) %>
+
+      <%- include('../partials/flash') %>
 
       <form method="get" action="/admin/logs" class="toolbar">
         <select name="level">
@@ -36,7 +38,15 @@
 
       <section class="panel">
         <% if (logs.length === 0) { %>
-          <p class="muted">No logs match the current filters.</p>
+          <div class="empty-state">
+            <% if (filters.level || filters.category || filters.siteId) { %>
+              <p><strong>No logs match the current filters.</strong></p>
+              <p><a href="/admin/logs">Clear filters</a> to see everything.</p>
+            <% } else { %>
+              <p><strong>No log entries yet.</strong></p>
+              <p class="muted">Logs will appear here as soon as an agent registers, sends a heartbeat, or triggers a security event.</p>
+            <% } %>
+          </div>
         <% } else { %>
           <div class="table-scroll">
             <table class="data-table">

@@ -1,0 +1,14 @@
+<%
+// locals required: siteId
+var __commandTarget = '/admin/sites/' + siteId + '/commands';
+%>
+<section class="command-actions">
+  <form method="post" action="<%= __commandTarget %>" class="inline-form">
+    <input type="hidden" name="action" value="sync_status" />
+    <button type="submit" class="btn">Sync status</button>
+  </form>
+  <form method="post" action="<%= __commandTarget %>" class="inline-form">
+    <input type="hidden" name="action" value="scan_updates" />
+    <button type="submit" class="btn btn-primary">Scan updates</button>
+  </form>
+</section>

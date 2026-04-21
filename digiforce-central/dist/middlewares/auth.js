@@ -4,6 +4,10 @@ exports.requireAuth = void 0;
 const prisma_1 = require("../lib/prisma");
 const jwt_1 = require("../lib/jwt");
 const api_error_1 = require("../utils/api-error");
+/**
+ * Bearer-token auth for the JSON API. Resolves a User row and rejects
+ * inactive / missing users.
+ */
 const requireAuth = async (req, _res, next) => {
     try {
         const header = req.header('authorization');
@@ -20,7 +24,7 @@ const requireAuth = async (req, _res, next) => {
         catch {
             return next(api_error_1.ApiError.unauthorized('Invalid or expired token'));
         }
-        const user = await prisma_1.prisma.adminUser.findUnique({ where: { id: payload.sub } });
+        const user = await prisma_1.prisma.user.findUnique({ where: { id: payload.sub } });
         if (!user)
             return next(api_error_1.ApiError.unauthorized('User not found'));
         if (!user.isActive)

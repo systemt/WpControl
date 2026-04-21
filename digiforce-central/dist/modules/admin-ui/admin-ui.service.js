@@ -37,13 +37,43 @@ exports.loadDashboard = loadDashboard;
 exports.listSites = listSites;
 exports.getSiteDetail = getSiteDetail;
 exports.listLogs = listLogs;
+exports.listAllUsers = listAllUsers;
 const prisma_1 = require("../../lib/prisma");
-const dashboard_service_1 = require("../dashboard/dashboard.service");
 const sitesService = __importStar(require("../sites/sites.service"));
-async function loadDashboard() {
-    const [summary, recentSites, recentLogs] = await Promise.all([
-        (0, dashboard_service_1.getSummary)(),
+const RECENTLY_SEEN_MS = 15 * 60 * 1000;
+function scopeSites(actor, where = {}) {
+    if (actor.role === 'admin')
+        return where;
+    return { ...where, userId: actor.id };
+}
+function scopeLogs(actor, where = {}) {
+    if (actor.role === 'admin')
+        return where;
+    return { ...where, site: { userId: actor.id } };
+}
+async function loadDashboard(actor) {
+    const siteWhere = scopeSites(actor);
+    const logWhere = scopeLogs(actor);
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [totalSites, connectedSites, inactiveSites, sitesWithUpdates, totalCommands, failedCommands, recentLogsCount, recentSites, recentLogs, subscription,] = await Promise.all([
+        prisma_1.prisma.site.count({ where: siteWhere }),
+        prisma_1.prisma.site.count({ where: { ...siteWhere, status: 'connected' } }),
+        prisma_1.prisma.site.count({ where: { ...siteWhere, status: { in: ['disconnected', 'disabled', 'unknown'] } } }),
+        prisma_1.prisma.site.count({
+            where: {
+                ...siteWhere,
+                OR: [
+                    { pluginSnapshots: { some: { hasUpdate: true } } },
+                    { themeSnapshots: { some: { hasUpdate: true } } },
+                    { coreSnapshot: { hasUpdate: true } },
+                ],
+            },
+        }),
+        prisma_1.prisma.siteCommand.count({ where: { site: siteWhere } }),
+        prisma_1.prisma.siteCommand.count({ where: { site: siteWhere, status: 'failed' } }),
+        prisma_1.prisma.siteLog.count({ where: { ...logWhere, createdAt: { gte: since } } }),
         prisma_1.prisma.site.findMany({
+            where: siteWhere,
             orderBy: { updatedAt: 'desc' },
             take: 10,
             select: {
@@ -57,15 +87,38 @@ async function loadDashboard() {
             },
         }),
         prisma_1.prisma.siteLog.findMany({
+            where: logWhere,
             orderBy: { createdAt: 'desc' },
             take: 15,
             include: { site: { select: { id: true, name: true } } },
         }),
+        actor.role === 'admin'
+            ? null
+            : prisma_1.prisma.subscription.findUnique({
+                where: { userId: actor.id },
+                include: { plan: true },
+            }),
     ]);
-    return { summary, recentSites, recentLogs };
+    return {
+        summary: {
+            totalSites,
+            connectedSites,
+            activeSites: connectedSites,
+            inactiveSites,
+            sitesWithUpdates,
+            totalCommands,
+            pendingCommands: 0,
+            failedCommands,
+            recentLogs: recentLogsCount,
+            recentLogsWindowHours: 24,
+        },
+        recentSites,
+        recentLogs,
+        subscription,
+    };
 }
-async function listSites(filters) {
-    const where = {};
+async function listSites(actor, filters) {
+    const where = scopeSites(actor);
     const q = filters.q?.trim();
     if (q) {
         where.OR = [
@@ -73,9 +126,10 @@ async function listSites(filters) {
             { url: { contains: q, mode: 'insensitive' } },
         ];
     }
-    if (filters.status) {
+    if (filters.status)
         where.status = filters.status;
-    }
+    if (filters.environment)
+        where.environment = filters.environment;
     return prisma_1.prisma.site.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -84,9 +138,9 @@ async function listSites(filters) {
         },
     });
 }
-async function getSiteDetail(id) {
-    const site = await sitesService.getSite(id);
-    const [plugins, themes, core, logs] = await Promise.all([
+async function getSiteDetail(actor, id) {
+    const site = await sitesService.getSite({ id: actor.id, role: actor.role }, id);
+    const [plugins, themes, core, logs, commands] = await Promise.all([
         prisma_1.prisma.sitePluginSnapshot.findMany({
             where: { siteId: id },
             orderBy: [{ hasUpdate: 'desc' }, { isActive: 'desc' }, { name: 'asc' }],
@@ -102,11 +156,17 @@ async function getSiteDetail(id) {
             orderBy: { createdAt: 'desc' },
             take: 30,
         }),
+        prisma_1.prisma.siteCommand.findMany({
+            where: { siteId: id },
+            orderBy: { createdAt: 'desc' },
+            take: 20,
+        }),
     ]);
-    return { site, plugins, themes, core, logs };
+    const recentlySeen = Boolean(site.lastSeenAt && Date.now() - new Date(site.lastSeenAt).getTime() < RECENTLY_SEEN_MS);
+    return { site, plugins, themes, core, logs, commands, recentlySeen };
 }
-async function listLogs(filters) {
-    const where = {};
+async function listLogs(actor, filters) {
+    const where = scopeLogs(actor);
     if (filters.level)
         where.level = filters.level;
     if (filters.category)
@@ -121,10 +181,37 @@ async function listLogs(filters) {
             include: { site: { select: { id: true, name: true } } },
         }),
         prisma_1.prisma.site.findMany({
+            where: scopeSites(actor),
             select: { id: true, name: true },
             orderBy: { name: 'asc' },
         }),
     ]);
     return { logs, sites };
+}
+/**
+ * Admin-only tenant overview. Returns every user with their site count,
+ * subscription plan (if any), and role so the impersonation page can render
+ * a single-screen directory.
+ */
+async function listAllUsers() {
+    const users = await prisma_1.prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+            subscription: { include: { plan: { select: { name: true, slug: true } } } },
+            _count: { select: { sites: true } },
+        },
+    });
+    return users.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        isActive: u.isActive,
+        createdAt: u.createdAt,
+        lastLoginAt: u.lastLoginAt,
+        siteCount: u._count.sites,
+        planName: u.subscription?.plan.name ?? null,
+        subscriptionStatus: u.subscription?.status ?? null,
+    }));
 }
 //# sourceMappingURL=admin-ui.service.js.map

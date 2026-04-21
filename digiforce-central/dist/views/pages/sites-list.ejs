@@ -4,10 +4,13 @@
   <div class="layout">
     <%- include('../partials/sidebar') %>
     <main class="content">
-      <div class="page-header">
-        <h1>Sites</h1>
-        <p class="muted"><%= sites.length %> site<%= sites.length === 1 ? '' : 's' %></p>
-      </div>
+      <%- include('../partials/page-header', {
+        title: 'Sites',
+        subtitle: sites.length + ' site' + (sites.length === 1 ? '' : 's'),
+        actions: [{ href: '/admin/sites/new', label: '+ New site', primary: true }],
+      }) %>
+
+      <%- include('../partials/flash') %>
 
       <form method="get" action="/admin/sites" class="toolbar">
         <input
@@ -22,15 +25,28 @@
             <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
           <% }); %>
         </select>
+        <select name="env">
+          <option value="">All environments</option>
+          <% envOptions.forEach(function (e) { %>
+            <option value="<%= e %>" <%= filters.environment === e ? 'selected' : '' %>><%= e %></option>
+          <% }); %>
+        </select>
         <button class="btn" type="submit">Apply</button>
-        <% if (filters.q || filters.status) { %>
+        <% if (filters.q || filters.status || filters.environment) { %>
           <a class="btn btn-ghost" href="/admin/sites">Reset</a>
         <% } %>
       </form>
 
       <section class="panel">
         <% if (sites.length === 0) { %>
-          <p class="muted">No sites match the current filters.</p>
+          <div class="empty-state">
+            <p><strong>No sites match the current filters.</strong></p>
+            <% if (filters.q || filters.status || filters.environment) { %>
+              <p>Try clearing the filters or <a href="/admin/sites">view all sites</a>.</p>
+            <% } else { %>
+              <p><a href="/admin/sites/new" class="btn btn-primary btn-small">Provision your first site</a></p>
+            <% } %>
+          </div>
         <% } else { %>
           <div class="table-scroll">
             <table class="data-table">

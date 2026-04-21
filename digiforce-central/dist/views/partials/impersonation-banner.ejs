@@ -1,0 +1,12 @@
+<% if (typeof impersonation !== 'undefined' && impersonation && impersonation.active) { %>
+  <div class="impersonation-banner" role="alert">
+    <div class="impersonation-text">
+      <strong>Impersonating:</strong>
+      <%= impersonation.impersonatedName %>
+      <span class="muted">(<%= impersonation.impersonatedEmail %>)</span>
+    </div>
+    <form method="post" action="/stop-impersonation" class="inline-form">
+      <button type="submit" class="btn btn-small impersonation-stop">Stop impersonation</button>
+    </form>
+  </div>
+<% } %>

@@ -4,15 +4,23 @@
   <div class="layout">
     <%- include('../partials/sidebar') %>
     <main class="content">
-      <div class="page-header">
-        <h1><%= site.name %></h1>
-        <p class="muted"><%= site.url %></p>
-      </div>
+      <%- include('../partials/page-header', {
+        title: site.name,
+        subtitle: site.url,
+        actions: [{ href: '/admin/sites', label: '← All sites' }],
+      }) %>
+
+      <%- include('../partials/flash') %>
+
+      <%- include('../partials/command-actions', { siteId: site.id }) %>
 
       <section class="cards">
         <article class="card">
           <h3>Status</h3>
           <p class="metric"><span class="badge badge-<%= site.status %>"><%= site.status %></span></p>
+          <p class="muted">
+            <% if (recentlySeen) { %>Seen recently<% } else { %>Not seen recently<% } %>
+          </p>
         </article>
         <article class="card">
           <h3>Environment</h3>
@@ -32,37 +40,61 @@
         </article>
       </section>
 
-      <section class="panel">
-        <h2>Identity</h2>
-        <dl class="meta-grid">
-          <dt>UUID</dt><dd><code><%= site.uuid %></code></dd>
-          <dt>WordPress</dt><dd><%= site.wpVersion || '—' %></dd>
-          <dt>PHP</dt><dd><%= site.phpVersion || '—' %></dd>
-          <dt>Plugin</dt><dd><%= site.pluginVersion || '—' %></dd>
-          <dt>Last seen</dt><dd><%= formatDate(site.lastSeenAt) %></dd>
-          <dt>Last sync</dt><dd><%= formatDate(site.lastSyncAt) %></dd>
-          <dt>Created</dt><dd><%= formatDate(site.createdAt) %></dd>
-        </dl>
-      </section>
-
-      <section class="panel">
-        <h2>Connection</h2>
-        <% if (site.connection) { %>
+      <div class="two-col">
+        <section class="panel">
+          <h2>Identity</h2>
           <dl class="meta-grid">
-            <dt>Enabled</dt><dd><%= site.connection.connectionEnabled ? 'Yes' : 'No' %></dd>
-            <dt>Signed requests</dt><dd><%= site.connection.requireSignedRequests ? 'Required' : 'Optional (dev)' %></dd>
-            <dt>Allowed IPs</dt><dd>
-              <% if (site.connection.allowedIps && site.connection.allowedIps.length) { %>
-                <%= site.connection.allowedIps.join(', ') %>
-              <% } else { %>
-                <span class="muted">Any</span>
-              <% } %>
-            </dd>
+            <dt>UUID</dt><dd><code><%= site.uuid %></code></dd>
+            <dt>WordPress</dt><dd><%= site.wpVersion || '—' %></dd>
+            <dt>PHP</dt><dd><%= site.phpVersion || '—' %></dd>
+            <dt>Plugin</dt><dd><%= site.pluginVersion || '—' %></dd>
+            <dt>Last seen</dt><dd><%= formatDate(site.lastSeenAt) %></dd>
+            <dt>Last sync</dt><dd><%= formatDate(site.lastSyncAt) %></dd>
+            <dt>Created</dt><dd><%= formatDate(site.createdAt) %></dd>
+            <% if (site.centralNotes) { %>
+              <dt>Notes</dt><dd><%= site.centralNotes %></dd>
+            <% } %>
           </dl>
-        <% } else { %>
-          <p class="muted">No connection record configured.</p>
-        <% } %>
-      </section>
+        </section>
+
+        <section class="panel">
+          <h2>Connection</h2>
+          <% if (site.connection) { %>
+            <dl class="meta-grid">
+              <dt>Enabled</dt>
+              <dd>
+                <% if (site.connection.connectionEnabled) { %>
+                  <span class="badge badge-connected">Yes</span>
+                <% } else { %>
+                  <span class="badge badge-disabled">No</span>
+                <% } %>
+              </dd>
+              <dt>Signed requests</dt>
+              <dd><%= site.connection.requireSignedRequests ? 'Required (HMAC)' : 'Optional (dev)' %></dd>
+              <dt>Allowed IPs</dt>
+              <dd>
+                <% if (site.connection.allowedIps && site.connection.allowedIps.length) { %>
+                  <%= site.connection.allowedIps.join(', ') %>
+                <% } else { %>
+                  <span class="muted">Any</span>
+                <% } %>
+              </dd>
+              <dt>Recent agent activity</dt>
+              <dd>
+                <% if (recentlySeen) { %>
+                  <span class="badge badge-connected">Active</span>
+                <% } else { %>
+                  <span class="badge badge-unknown">Idle</span>
+                <% } %>
+              </dd>
+              <dt>Secret key</dt>
+              <dd><span class="muted">Hidden — rotate via API if lost.</span></dd>
+            </dl>
+          <% } else { %>
+            <div class="empty-state"><p>No connection record configured.</p></div>
+          <% } %>
+        </section>
+      </div>
 
       <section class="panel">
         <h2>WordPress core</h2>
@@ -70,37 +102,79 @@
           <dl class="meta-grid">
             <dt>Installed</dt><dd><%= core.currentVersion %></dd>
             <dt>Available</dt><dd><%= core.latestVersion %></dd>
-            <dt>Update</dt><dd><%= core.hasUpdate ? 'Available' : 'Up to date' %></dd>
+            <dt>Update</dt>
+            <dd>
+              <% if (core.hasUpdate) { %>
+                <span class="badge badge-warning">Available</span>
+              <% } else { %>
+                <span class="badge badge-connected">Up to date</span>
+              <% } %>
+            </dd>
             <dt>Type</dt><dd><%= core.updateType || '—' %></dd>
             <dt>Synced</dt><dd><%= formatRelative(core.lastSyncedAt) %></dd>
           </dl>
         <% } else { %>
-          <p class="muted">Core snapshot not yet received — trigger a /sync from the agent.</p>
+          <div class="empty-state">
+            <p>No core snapshot received yet.</p>
+            <p class="muted">Trigger a <code>/sync</code> from the agent to populate this.</p>
+          </div>
         <% } %>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-bulk-panel>
         <div class="panel-header">
           <h2>Plugins <span class="muted">(<%= plugins.length %>)</span></h2>
         </div>
         <% if (plugins.length === 0) { %>
-          <p class="muted">No plugin snapshot received yet.</p>
+          <div class="empty-state"><p>No plugin snapshot received yet.</p></div>
         <% } else { %>
+          <%
+            var __cmdPath = '/admin/sites/' + site.id + '/commands';
+            var __updatable = plugins.filter(function (p) { return p.hasUpdate; });
+          %>
+          <%# Bulk form is keyed-to by checkboxes via the HTML5 `form=` attribute, %>
+          <%# so per-row action forms can remain un-nested inside the same table. %>
+          <form id="bulk-update-form" method="post" action="<%= __cmdPath %>">
+            <input type="hidden" name="action" value="bulk_update_plugins" />
+          </form>
+
+          <% if (__updatable.length > 0) { %>
+            <div class="bulk-toolbar">
+              <label class="bulk-toolbar-check">
+                <input type="checkbox" data-bulk-select-all />
+                <span>Select all with updates</span>
+              </label>
+              <span class="muted"><strong data-bulk-count>0</strong> / <%= __updatable.length %> selected</span>
+              <button type="submit" form="bulk-update-form" class="btn btn-primary" data-bulk-submit disabled>
+                Bulk update selected
+              </button>
+            </div>
+          <% } %>
+
           <div class="table-scroll">
             <table class="data-table">
               <thead>
                 <tr>
+                  <th class="col-narrow"></th>
                   <th>Name</th>
                   <th>Installed</th>
                   <th>Available</th>
                   <th>Active</th>
                   <th>Auto-update</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <% plugins.forEach(function (p) { %>
                   <tr>
+                    <td class="col-narrow">
+                      <% if (p.hasUpdate) { %>
+                        <%# Belongs to #bulk-update-form via `form=` attribute. %>
+                        <input type="checkbox" name="plugin_files" value="<%= p.pluginFile %>"
+                          form="bulk-update-form" data-bulk-check />
+                      <% } %>
+                    </td>
                     <td>
                       <strong><%= p.name || p.pluginFile %></strong>
                       <div class="muted"><%= p.pluginFile %></div>
@@ -116,6 +190,41 @@
                         <span class="badge badge-connected">OK</span>
                       <% } %>
                     </td>
+                    <td class="row-actions">
+                      <% if (p.hasUpdate) { %>
+                        <form method="post" action="<%= __cmdPath %>" class="inline-form">
+                          <input type="hidden" name="action" value="update_plugin" />
+                          <input type="hidden" name="plugin_file" value="<%= p.pluginFile %>" />
+                          <button type="submit" class="btn btn-small btn-primary">Update</button>
+                        </form>
+                      <% } %>
+                      <% if (p.isActive) { %>
+                        <form method="post" action="<%= __cmdPath %>" class="inline-form">
+                          <input type="hidden" name="action" value="deactivate_plugin" />
+                          <input type="hidden" name="plugin_file" value="<%= p.pluginFile %>" />
+                          <button type="submit" class="btn btn-small">Deactivate</button>
+                        </form>
+                      <% } else { %>
+                        <form method="post" action="<%= __cmdPath %>" class="inline-form">
+                          <input type="hidden" name="action" value="activate_plugin" />
+                          <input type="hidden" name="plugin_file" value="<%= p.pluginFile %>" />
+                          <button type="submit" class="btn btn-small">Activate</button>
+                        </form>
+                      <% } %>
+                      <% if (p.autoUpdateEnabled) { %>
+                        <form method="post" action="<%= __cmdPath %>" class="inline-form">
+                          <input type="hidden" name="action" value="disable_plugin_auto_update" />
+                          <input type="hidden" name="plugin_file" value="<%= p.pluginFile %>" />
+                          <button type="submit" class="btn btn-small btn-ghost" title="Disable auto-update">Auto-update: on</button>
+                        </form>
+                      <% } else { %>
+                        <form method="post" action="<%= __cmdPath %>" class="inline-form">
+                          <input type="hidden" name="action" value="enable_plugin_auto_update" />
+                          <input type="hidden" name="plugin_file" value="<%= p.pluginFile %>" />
+                          <button type="submit" class="btn btn-small btn-ghost" title="Enable auto-update">Auto-update: off</button>
+                        </form>
+                      <% } %>
+                    </td>
                   </tr>
                 <% }); %>
               </tbody>
@@ -129,7 +238,7 @@
           <h2>Themes <span class="muted">(<%= themes.length %>)</span></h2>
         </div>
         <% if (themes.length === 0) { %>
-          <p class="muted">No theme snapshot received yet.</p>
+          <div class="empty-state"><p>No theme snapshot received yet.</p></div>
         <% } else { %>
           <table class="data-table">
             <thead>
@@ -168,9 +277,77 @@
       </section>
 
       <section class="panel">
+        <div class="panel-header">
+          <h2>Recent commands <span class="muted">(<%= commands.length %>)</span></h2>
+        </div>
+        <% if (commands.length === 0) { %>
+          <div class="empty-state">
+            <p>No commands dispatched to this site yet.</p>
+            <p class="muted">Use the action buttons above or on the plugins table to trigger one.</p>
+          </div>
+        <% } else { %>
+          <div class="table-scroll">
+            <% var __retryPath = function (rowId) { return '/admin/sites/' + site.id + '/commands/' + rowId + '/retry'; }; %>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Command</th>
+                  <th>Action</th>
+                  <th>Attempt</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Started</th>
+                  <th>Finished</th>
+                  <th>Error</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% commands.forEach(function (c) { %>
+                  <tr>
+                    <td>
+                      <code><%= c.commandId %></code>
+                      <% if (c.parentCommandId) { %>
+                        <div class="muted">retry of prior attempt</div>
+                      <% } %>
+                    </td>
+                    <td><%= c.action %></td>
+                    <td><%= c.attempt || 1 %></td>
+                    <td><span class="badge badge-<%= c.status %>"><%= c.status %></span></td>
+                    <td><%= formatRelative(c.createdAt) %></td>
+                    <td><%= c.startedAt ? formatRelative(c.startedAt) : '—' %></td>
+                    <td><%= c.finishedAt ? formatRelative(c.finishedAt) : '—' %></td>
+                    <td>
+                      <% if (c.errorCode) { %>
+                        <span class="badge badge-error"><%= c.errorCode %></span>
+                        <% if (c.errorMessage) { %>
+                          <div class="muted"><%= c.errorMessage %></div>
+                        <% } %>
+                      <% } else { %>
+                        <span class="muted">—</span>
+                      <% } %>
+                    </td>
+                    <td class="row-actions">
+                      <% if (c.status === 'failed') { %>
+                        <form method="post" action="<%= __retryPath(c.id) %>" class="inline-form">
+                          <button type="submit" class="btn btn-small btn-primary">Retry</button>
+                        </form>
+                      <% } else { %>
+                        <span class="muted">—</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+
+      <section class="panel">
         <h2>Recent activity</h2>
         <% if (logs.length === 0) { %>
-          <p class="muted">No logs recorded for this site yet.</p>
+          <div class="empty-state"><p>No logs recorded for this site yet.</p></div>
         <% } else { %>
           <table class="data-table">
             <thead>

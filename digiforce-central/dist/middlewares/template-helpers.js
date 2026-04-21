@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.injectTemplateHelpers = void 0;
 const config_1 = require("../config");
+const flash_1 = require("../lib/flash");
 /**
  * Expose a small set of helpers and per-request metadata to every EJS render.
  * Templates read them via `res.locals.<name>` (EJS pulls from `res.locals`
@@ -38,6 +39,8 @@ const injectTemplateHelpers = (req, res, next) => {
     res.locals.currentPath = req.path;
     res.locals.appVersion = config_1.config.APP_VERSION;
     res.locals.appName = config_1.config.APP_NAME;
+    // Read-and-clear any pending flash so the templates can render it once.
+    res.locals.flash = (0, flash_1.consumeFlash)(req, res);
     next();
 };
 exports.injectTemplateHelpers = injectTemplateHelpers;

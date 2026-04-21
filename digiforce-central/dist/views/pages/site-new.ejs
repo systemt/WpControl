@@ -1,0 +1,75 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <%- include('../partials/page-header', {
+        title: 'New site',
+        subtitle: 'Provision a WordPress site and generate its connection secret.',
+        actions: [{ href: '/admin/sites', label: '← Back to sites' }],
+      }) %>
+
+      <%- include('../partials/flash') %>
+
+      <% if (errors && errors._form) { %>
+        <% errors._form.forEach(function (msg) { %>
+          <div class="flash flash-error"><%= msg %></div>
+        <% }); %>
+      <% } %>
+
+      <section class="panel">
+        <form method="post" action="/admin/sites" class="form-grid" novalidate>
+          <label>
+            <span>Site name</span>
+            <input type="text" name="name" required maxlength="191" value="<%= values.name %>" placeholder="Acme Corp" />
+            <% if (errors && errors.name) { %>
+              <small class="field-error"><%= errors.name[0] %></small>
+            <% } %>
+          </label>
+
+          <label>
+            <span>Site URL</span>
+            <input type="url" name="url" required value="<%= values.url %>" placeholder="https://acme.example" />
+            <% if (errors && errors.url) { %>
+              <small class="field-error"><%= errors.url[0] %></small>
+            <% } %>
+          </label>
+
+          <label>
+            <span>Environment</span>
+            <select name="environment">
+              <% ['production', 'staging', 'development'].forEach(function (env) { %>
+                <option value="<%= env %>" <%= values.environment === env ? 'selected' : '' %>><%= env %></option>
+              <% }); %>
+            </select>
+          </label>
+
+          <label>
+            <span>Notes <span class="muted">(optional)</span></span>
+            <textarea name="centralNotes" rows="4" maxlength="2000" placeholder="Anything future-you should know about this site…"><%= values.centralNotes %></textarea>
+            <% if (errors && errors.centralNotes) { %>
+              <small class="field-error"><%= errors.centralNotes[0] %></small>
+            <% } %>
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create site</button>
+            <a href="/admin/sites" class="btn btn-ghost">Cancel</a>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>What happens next</h2>
+        <ol class="muted" style="padding-left: 20px; line-height: 1.8;">
+          <li>The central will generate a unique Site UUID and a cryptographically random 96-hex-character secret key.</li>
+          <li>Both will be shown <strong>exactly once</strong> on the site detail page after creation. Copy them into the DigiForce WP Agent settings on the target WordPress site.</li>
+          <li>Enable the connection in the WP Agent and click <em>Sync Status Now</em> — the site will appear as <code>connected</code> in the central.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

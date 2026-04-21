@@ -35,37 +35,43 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSiteCoreHandler = exports.listSiteThemesHandler = exports.listSitePluginsHandler = exports.deleteSiteHandler = exports.updateSiteHandler = exports.createSiteHandler = exports.getSiteHandler = exports.listSitesHandler = void 0;
 const async_handler_1 = require("../../utils/async-handler");
+const api_error_1 = require("../../utils/api-error");
 const service = __importStar(require("./sites.service"));
-exports.listSitesHandler = (0, async_handler_1.asyncHandler)(async (_req, res) => {
-    const sites = await service.listSites();
+function actorFromReq(req) {
+    if (!req.user)
+        throw api_error_1.ApiError.unauthorized();
+    return { id: req.user.id, role: req.user.role };
+}
+exports.listSitesHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
+    const sites = await service.listSites(actorFromReq(req));
     res.json({ success: true, data: sites });
 });
 exports.getSiteHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const site = await service.getSite(req.params.id);
+    const site = await service.getSite(actorFromReq(req), req.params.id);
     res.json({ success: true, data: site });
 });
 exports.createSiteHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const site = await service.createSite(req.body);
+    const site = await service.createSite(actorFromReq(req), req.body);
     res.status(201).json({ success: true, data: site });
 });
 exports.updateSiteHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const site = await service.updateSite(req.params.id, req.body);
+    const site = await service.updateSite(actorFromReq(req), req.params.id, req.body);
     res.json({ success: true, data: site });
 });
 exports.deleteSiteHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    await service.deleteSite(req.params.id);
+    await service.deleteSite(actorFromReq(req), req.params.id);
     res.json({ success: true, data: { message: 'Site deleted' } });
 });
 exports.listSitePluginsHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const data = await service.listSitePlugins(req.params.id);
+    const data = await service.listSitePlugins(actorFromReq(req), req.params.id);
     res.json({ success: true, data });
 });
 exports.listSiteThemesHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const data = await service.listSiteThemes(req.params.id);
+    const data = await service.listSiteThemes(actorFromReq(req), req.params.id);
     res.json({ success: true, data });
 });
 exports.getSiteCoreHandler = (0, async_handler_1.asyncHandler)(async (req, res) => {
-    const data = await service.getSiteCore(req.params.id);
+    const data = await service.getSiteCore(actorFromReq(req), req.params.id);
     res.json({ success: true, data });
 });
 //# sourceMappingURL=sites.controller.js.map

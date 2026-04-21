@@ -1,0 +1,40 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <%- include('../partials/page-header', {
+        title: 'Account',
+        subtitle: 'Your identity + session.',
+      }) %>
+
+      <%- include('../partials/flash') %>
+
+      <section class="panel">
+        <h2>Profile</h2>
+        <% if (account) { %>
+          <dl class="meta-grid">
+            <dt>Name</dt><dd><%= account.name %></dd>
+            <dt>Email</dt><dd><%= account.email %></dd>
+            <dt>Role</dt><dd><span class="badge badge-info"><%= account.role %></span></dd>
+            <dt>Member since</dt><dd><%= formatDate(account.createdAt) %></dd>
+            <dt>Last login</dt><dd><%= account.lastLoginAt ? formatDate(account.lastLoginAt) : '—' %></dd>
+          </dl>
+        <% } else { %>
+          <p class="muted">Unable to load account.</p>
+        <% } %>
+      </section>
+
+      <section class="panel">
+        <h2>Session</h2>
+        <p class="muted">Signing out clears your browser cookie. Your account and sites are untouched.</p>
+        <form method="post" action="/logout" class="inline-form">
+          <button type="submit" class="btn">Sign out</button>
+        </form>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

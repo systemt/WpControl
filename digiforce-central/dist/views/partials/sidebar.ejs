@@ -1,8 +1,17 @@
+<%
+var __isAdmin = typeof user !== 'undefined' && user && user.role === 'admin';
+var __impersonating = typeof impersonation !== 'undefined' && impersonation && impersonation.active;
+%>
 <aside class="sidebar">
   <nav>
-    <a href="/admin" class="<%= currentPath === '/admin' ? 'active' : '' %>">Dashboard</a>
-    <a href="/admin/sites" class="<%= currentPath.indexOf('/admin/sites') === 0 ? 'active' : '' %>">Sites</a>
-    <a href="/admin/logs" class="<%= currentPath.indexOf('/admin/logs') === 0 ? 'active' : '' %>">Logs</a>
+    <a href="/dashboard" class="<%= currentPath === '/dashboard' || currentPath === '/admin' ? 'active' : '' %>">Dashboard</a>
+    <a href="/sites" class="<%= currentPath.indexOf('/sites') === 0 || currentPath.indexOf('/admin/sites') === 0 ? 'active' : '' %>">Sites</a>
+    <a href="/logs" class="<%= currentPath.indexOf('/logs') === 0 || currentPath.indexOf('/admin/logs') === 0 ? 'active' : '' %>">Logs</a>
+    <a href="/billing" class="<%= currentPath.indexOf('/billing') === 0 ? 'active' : '' %>">Billing</a>
+    <a href="/account" class="<%= currentPath.indexOf('/account') === 0 ? 'active' : '' %>">Account</a>
+    <% if (__isAdmin && !__impersonating) { %>
+      <a href="/admin/users" class="<%= currentPath.indexOf('/admin/users') === 0 ? 'active' : '' %>">Users <span class="pill">admin</span></a>
+    <% } %>
   </nav>
   <div class="sidebar-footer muted">DigiForce Central<br />v<%= appVersion %></div>
 </aside>

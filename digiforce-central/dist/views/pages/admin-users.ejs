@@ -1,0 +1,85 @@
+<%- include('../partials/head', { title: title + ' — ' + appName }) %>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="layout">
+    <%- include('../partials/sidebar') %>
+    <main class="content">
+      <%- include('../partials/page-header', {
+        title: 'Users',
+        subtitle: users.length + ' account' + (users.length === 1 ? '' : 's'),
+      }) %>
+
+      <%- include('../partials/flash') %>
+
+      <section class="panel">
+        <% if (users.length === 0) { %>
+          <div class="empty-state">
+            <p>No users yet.</p>
+          </div>
+        <% } else { %>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Plan</th>
+                  <th>Sites</th>
+                  <th>Last login</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% users.forEach(function (u) { %>
+                  <tr>
+                    <td>
+                      <strong><%= u.name %></strong>
+                      <% if (!u.isActive) { %>
+                        <span class="badge badge-disabled">inactive</span>
+                      <% } %>
+                    </td>
+                    <td class="muted"><%= u.email %></td>
+                    <td>
+                      <span class="badge badge-<%= u.role === 'admin' ? 'info' : 'connected' %>"><%= u.role %></span>
+                    </td>
+                    <td>
+                      <% if (u.planName) { %>
+                        <%= u.planName %>
+                        <% if (u.subscriptionStatus) { %>
+                          <div class="muted"><%= u.subscriptionStatus %></div>
+                        <% } %>
+                      <% } else { %>
+                        <span class="muted">—</span>
+                      <% } %>
+                    </td>
+                    <td><%= u.siteCount %></td>
+                    <td><%= u.lastLoginAt ? formatRelative(u.lastLoginAt) : 'never' %></td>
+                    <td><%= formatDate(u.createdAt) %></td>
+                    <td class="row-actions">
+                      <% if (u.id === currentUserId) { %>
+                        <span class="muted">you</span>
+                      <% } else if (u.role === 'admin') { %>
+                        <span class="muted">admin</span>
+                      <% } else if (!u.isActive) { %>
+                        <span class="muted">inactive</span>
+                      <% } else { %>
+                        <form method="post" action="/admin/users/<%= u.id %>/impersonate" class="inline-form"
+                          onsubmit="return confirm('Impersonate <%= u.name.replace(/'/g, "\\'") %>? An audit log entry will be written.');">
+                          <button type="submit" class="btn btn-small btn-primary">Impersonate</button>
+                        </form>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </section>
+    </main>
+  </div>
+  <%- include('../partials/footer') %>
+</body>
+</html>

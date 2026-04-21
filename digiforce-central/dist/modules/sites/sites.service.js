@@ -16,8 +16,15 @@ function redactConnectionSecret(connection) {
         return null;
     return { ...connection, secretKeyEncrypted: '[REDACTED]' };
 }
-async function listSites() {
+/** Unless the caller is an admin, restrict queries to their own rows. */
+function scopeByUser(actor, where) {
+    if (actor.role === 'admin')
+        return where;
+    return { ...where, userId: actor.id };
+}
+async function listSites(actor, extraWhere = {}) {
     return prisma_1.prisma.site.findMany({
+        where: scopeByUser(actor, extraWhere),
         orderBy: { createdAt: 'desc' },
         include: {
             connection: {
@@ -35,7 +42,7 @@ async function listSites() {
         },
     });
 }
-async function getSite(id) {
+async function getSite(actor, id) {
     const site = await prisma_1.prisma.site.findUnique({
         where: { id },
         include: {
@@ -46,6 +53,9 @@ async function getSite(id) {
     });
     if (!site)
         throw api_error_1.ApiError.notFound('Site not found');
+    if (actor.role !== 'admin' && site.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
     const [pluginsNeedingUpdate, themesNeedingUpdate] = await Promise.all([
         prisma_1.prisma.sitePluginSnapshot.count({ where: { siteId: site.id, hasUpdate: true } }),
         prisma_1.prisma.siteThemeSnapshot.count({ where: { siteId: site.id, hasUpdate: true } }),
@@ -63,7 +73,12 @@ async function getSite(id) {
         },
     };
 }
-async function createSite(input) {
+/**
+ * Create a site under the caller's account. The route layer must also apply
+ * `requireSiteQuota` middleware so plan limits are enforced before we reach
+ * this call.
+ */
+async function createSite(actor, input) {
     const uuid = input.uuid ?? (0, crypto_1.randomUUID)();
     const existing = await prisma_1.prisma.site.findUnique({ where: { uuid } });
     if (existing)
@@ -72,6 +87,7 @@ async function createSite(input) {
     const site = await prisma_1.prisma.site.create({
         data: {
             uuid,
+            userId: actor.id,
             name: input.name,
             url: input.url,
             environment: input.environment,
@@ -94,10 +110,13 @@ async function createSite(input) {
         secretKey,
     };
 }
-async function updateSite(id, input) {
+async function updateSite(actor, id, input) {
     const existing = await prisma_1.prisma.site.findUnique({ where: { id } });
     if (!existing)
         throw api_error_1.ApiError.notFound('Site not found');
+    if (actor.role !== 'admin' && existing.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
     const site = await prisma_1.prisma.site.update({
         where: { id },
         data: {
@@ -111,35 +130,55 @@ async function updateSite(id, input) {
     });
     return { ...site, connection: redactConnectionSecret(site.connection) };
 }
-async function deleteSite(id) {
+async function deleteSite(actor, id) {
     const existing = await prisma_1.prisma.site.findUnique({ where: { id } });
     if (!existing)
         throw api_error_1.ApiError.notFound('Site not found');
+    if (actor.role !== 'admin' && existing.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
     await prisma_1.prisma.site.delete({ where: { id } });
 }
-async function listSitePlugins(siteId) {
-    const site = await prisma_1.prisma.site.findUnique({ where: { id: siteId }, select: { id: true } });
+async function listSitePlugins(actor, siteId) {
+    const site = await prisma_1.prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true, userId: true },
+    });
     if (!site)
         throw api_error_1.ApiError.notFound('Site not found');
+    if (actor.role !== 'admin' && site.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
     return prisma_1.prisma.sitePluginSnapshot.findMany({
         where: { siteId },
         orderBy: [{ hasUpdate: 'desc' }, { isActive: 'desc' }, { name: 'asc' }],
     });
 }
-async function listSiteThemes(siteId) {
-    const site = await prisma_1.prisma.site.findUnique({ where: { id: siteId }, select: { id: true } });
+async function listSiteThemes(actor, siteId) {
+    const site = await prisma_1.prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true, userId: true },
+    });
     if (!site)
         throw api_error_1.ApiError.notFound('Site not found');
+    if (actor.role !== 'admin' && site.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
     return prisma_1.prisma.siteThemeSnapshot.findMany({
         where: { siteId },
         orderBy: [{ hasUpdate: 'desc' }, { isActive: 'desc' }, { name: 'asc' }],
     });
 }
-async function getSiteCore(siteId) {
-    const site = await prisma_1.prisma.site.findUnique({ where: { id: siteId }, select: { id: true } });
+async function getSiteCore(actor, siteId) {
+    const site = await prisma_1.prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true, userId: true },
+    });
     if (!site)
         throw api_error_1.ApiError.notFound('Site not found');
-    const core = await prisma_1.prisma.siteCoreSnapshot.findUnique({ where: { siteId } });
-    return core ?? null;
+    if (actor.role !== 'admin' && site.userId !== actor.id) {
+        throw api_error_1.ApiError.notFound('Site not found');
+    }
+    return prisma_1.prisma.siteCoreSnapshot.findUnique({ where: { siteId } }) ?? null;
 }
 //# sourceMappingURL=sites.service.js.map

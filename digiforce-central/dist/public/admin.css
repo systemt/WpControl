@@ -168,9 +168,24 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
   min-width: 0;
 }
 
-.page-header { margin-bottom: 24px; }
-.page-header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
-.page-header .muted { margin: 0; font-size: 13px; }
+/* ---------------------------------------------------------------------- */
+/*  Page header                                                            */
+/* ---------------------------------------------------------------------- */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header-left { min-width: 0; }
+.page-header-left h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
+.page-header-left .muted { margin: 0; font-size: 13px; word-break: break-word; }
+
+.page-header-right { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ---------------------------------------------------------------------- */
 /*  Cards                                                                  */
@@ -202,6 +217,7 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 
 .card .metric { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.2; }
 .card .metric .muted { font-weight: 500; font-size: 16px; }
+.card p.muted { margin: 4px 0 0; font-size: 11px; }
 
 .text-success { color: var(--success); }
 .text-warn { color: var(--warn); }
@@ -235,6 +251,14 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 
 .panel-header h2 { margin: 0; }
 
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.two-col .panel { margin-bottom: 0; }
+
 .meta-grid {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -244,7 +268,7 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 }
 
 .meta-grid dt { color: var(--text-muted); font-weight: 500; }
-.meta-grid dd { margin: 0; color: var(--text); }
+.meta-grid dd { margin: 0; color: var(--text); word-break: break-word; }
 
 .table-scroll { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
 
@@ -276,6 +300,22 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 .data-table .muted { font-size: 12px; }
 
 /* ---------------------------------------------------------------------- */
+/*  Empty state                                                            */
+/* ---------------------------------------------------------------------- */
+
+.empty-state {
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+.empty-state p { margin: 0 0 8px; }
+.empty-state p:last-child { margin-bottom: 0; }
+.empty-state strong { color: var(--text); }
+
+/* ---------------------------------------------------------------------- */
 /*  Badges                                                                 */
 /* ---------------------------------------------------------------------- */
 
@@ -297,6 +337,24 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 .badge-info { background: var(--info-bg); color: var(--info-fg); }
 .badge-warning { background: var(--warn-bg); color: var(--warn-fg); }
 .badge-error { background: var(--error-bg); color: var(--error-fg); }
+
+/* Command status badges */
+.badge-pending { background: var(--muted-bg); color: var(--muted-fg); }
+.badge-processing { background: var(--accent-soft); color: var(--accent); }
+.badge-sent { background: var(--accent-soft); color: var(--accent); }
+.badge-succeeded { background: var(--success-bg); color: var(--success-fg); }
+.badge-failed { background: var(--error-bg); color: var(--error-fg); }
+.badge-cancelled { background: var(--muted-bg); color: var(--muted-fg); }
+
+/* Pulse on in-flight rows so "processing" feels alive without JS. */
+.badge-processing,
+.badge-pending {
+  animation: dfc-pulse 1.6s ease-in-out infinite;
+}
+@keyframes dfc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
 
 .pill {
   display: inline-block;
@@ -367,8 +425,59 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+/* Grid-based forms (site creation) */
+.form-grid {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.form-grid label { display: grid; gap: 4px; }
+.form-grid label span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-grid label span .muted { text-transform: none; font-weight: 500; letter-spacing: 0; }
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.form-grid textarea { min-height: 96px; resize: vertical; }
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--error);
+  margin-top: 2px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 /* ---------------------------------------------------------------------- */
-/*  Flash / helpers                                                        */
+/*  Flash / alert                                                          */
 /* ---------------------------------------------------------------------- */
 
 .muted { color: var(--text-muted); }
@@ -386,6 +495,37 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 .flash-warn { background: var(--warn-bg); color: var(--warn-fg); border-color: #fde68a; }
 .flash-error { background: var(--error-bg); color: var(--error-fg); border-color: #fecaca; }
 
+.alert {
+  padding: 20px 22px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  box-shadow: var(--shadow);
+}
+.alert h3 { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
+.alert p { margin: 0 0 10px; font-size: 13px; }
+.alert p:last-of-type { margin-bottom: 12px; }
+
+.alert-secret {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #78350f;
+}
+.alert-secret .muted { color: #92400e; opacity: 0.9; }
+
+.secret-value {
+  display: block;
+  background: var(--surface);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  word-break: break-all;
+  border: 1px solid #fcd34d;
+  user-select: all;
+}
+
 .footer {
   padding: 16px 24px;
   text-align: center;
@@ -396,8 +536,149 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
 }
 
 /* ---------------------------------------------------------------------- */
+/*  Impersonation banner                                                   */
+/* ---------------------------------------------------------------------- */
+
+.impersonation-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 24px;
+  background: #fef3c7;
+  color: #78350f;
+  border-bottom: 1px solid #fcd34d;
+  font-size: 13px;
+  font-weight: 500;
+  position: sticky;
+  top: 56px;
+  z-index: 9;
+}
+
+.impersonation-banner strong { font-weight: 700; }
+.impersonation-banner .muted { color: #92400e; opacity: 0.8; }
+.impersonation-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.impersonation-stop {
+  background: #78350f;
+  color: #fef3c7;
+  border-color: #78350f;
+}
+.impersonation-stop:hover {
+  background: #5c2a0c;
+  border-color: #5c2a0c;
+  color: #fef3c7;
+}
+
+/* ---------------------------------------------------------------------- */
+/*  Bulk toolbar                                                           */
+/* ---------------------------------------------------------------------- */
+
+.bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.bulk-toolbar .muted { font-size: 12px; }
+.bulk-toolbar-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.bulk-toolbar [data-bulk-submit]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.col-narrow { width: 32px; text-align: center; }
+
+/* ---------------------------------------------------------------------- */
 /*  Responsive                                                             */
 /* ---------------------------------------------------------------------- */
+
+.command-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 200px;
+}
+
+.row-actions .inline-form { margin: 0; }
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.plan-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-card.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.plan-card h3 { margin: 0; font-size: 16px; }
+
+.plan-price {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.plan-price .muted { font-size: 13px; font-weight: 500; margin-left: 4px; }
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.plan-features li::before {
+  content: "✓";
+  color: var(--success);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+@media (max-width: 960px) {
+  .two-col { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }
@@ -411,4 +692,6 @@ code { font-family: "SF Mono", Menlo, Monaco, Consolas, monospace; font-size: 0.
   .sidebar-footer { display: none; }
   .content { padding: 20px 16px; }
   .toolbar input[type="search"] { min-width: 100%; }
+  .page-header { align-items: flex-start; }
+  .page-header-right { width: 100%; }
 }
