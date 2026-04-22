@@ -50,13 +50,17 @@ async function recoverStaleLocks() {
  * workers never block each other.
  */
 async function claimNext() {
+    // NOTE: Prisma keeps column names as-declared in the schema (no `@map`), so
+    // `createdAt`, `lockedAt`, `lockedBy` are stored in camelCase and MUST be
+    // double-quoted in raw SQL — Postgres would otherwise fold the identifier
+    // to lowercase and fail with "column does not exist".
     const rows = await prisma_1.prisma.$queryRaw `
     UPDATE site_commands
-    SET status = 'processing', locked_at = NOW(), locked_by = ${WORKER_ID}
+    SET status = 'processing', "lockedAt" = NOW(), "lockedBy" = ${WORKER_ID}
     WHERE id = (
       SELECT id FROM site_commands
       WHERE status = 'pending'
-      ORDER BY created_at ASC
+      ORDER BY "createdAt" ASC
       FOR UPDATE SKIP LOCKED
       LIMIT 1
     )
