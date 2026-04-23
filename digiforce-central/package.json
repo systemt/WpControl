@@ -41,6 +41,6 @@
   },
   "devDependencies": {},
   "engines": {
-    "node": ">=18.17"
+    "node": "20.x"
   }
 }
