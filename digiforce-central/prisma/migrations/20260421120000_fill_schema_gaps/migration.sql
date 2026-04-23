@@ -28,7 +28,14 @@ BEGIN
 
   -- Index renames — tolerate missing source indexes in case a prior partial
   -- run already renamed them.
-  BEGIN ALTER INDEX "admin_users_pkey"      RENAME TO "users_pkey";      EXCEPTION WHEN undefined_object THEN NULL; END;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_class WHERE relname = 'admin_users_pkey'
+  ) THEN
+    ALTER INDEX "admin_users_pkey" RENAME TO "users_pkey";
+  END IF;
+END $$;      EXCEPTION WHEN undefined_object THEN NULL; END;
   BEGIN ALTER INDEX "admin_users_email_key" RENAME TO "users_email_key"; EXCEPTION WHEN undefined_object THEN NULL; END;
 
   -- Default role shifts from 'admin' → 'user' for new rows only.
